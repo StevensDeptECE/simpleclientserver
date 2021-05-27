@@ -1,5 +1,0 @@
-simpleserver: SimpleServer.cc IPV4Socket.cc Socket.cc Request.cc
-	g++ -g $^ -o $@
-
-simpleclient: SimpleClient.cc IPV4Socket.cc Socket.cc Request.cc
-	g++ -g $^ -o $@

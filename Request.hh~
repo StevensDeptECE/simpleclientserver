@@ -1,6 +1,0 @@
-#pragma once
-
-class Request {
-public:
-	virtual void handle(int socket);
-};
