@@ -129,7 +129,7 @@ void IPV4Socket::wait() {
     if (returnsckt >= 0) {
       cout << "CONNECT SUCCESSFULLY"
            << "\n";
-      req->handle(returnsckt);
+      req->handleServer(returnsckt);
       close(returnsckt);
       // if you are not familiar with socket, try below code
       //			read(senderSock,testin, sizeof(testin)-1);
