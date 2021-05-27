@@ -1,0 +1,32 @@
+#pragma once
+
+/*
+   The list of errors specific to this application.
+   This file must be included BEFORE #include "Ex.hh"
+ */
+enum class Errcode {
+  FILE_READ = 0,
+  FILE_WRITE,
+  OUTOF_MEMORY,
+  DIR_NOT_FOUND,
+  IOEXCEPTION,
+  ILLEGAL_SIZE,
+  SOCKET,
+  SETSOCKOPT,
+  SOCKET_BIND,
+  NO_BIND,
+  LISTEN,
+  SIGACTION,
+  BAD_PROTOCOL,
+  FILE_NOT_FOUND,
+  PERMISSION_DENIED,
+  PERMISSION_NOWRITE,
+  PERMISSION_NOEXEC,
+  PERMISSION_NOREAD,
+  DISK_FAILURE,
+  OUT_OF_SPACE,
+  CONNECTION_FAILURE,
+  CERTIFICATE_EXPIRED,
+  CERTIFICATE_INVALIDATED,
+	SERVER_INVALID
+};
