@@ -7,7 +7,6 @@
 
 #ifdef _WIN32
 #include <winsock2.h>
-#include "csp/Request.hh"
 #endif
 #include <cstdint>
 using namespace std;
