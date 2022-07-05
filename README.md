@@ -4,5 +4,4 @@ This is an experiment with implementing simple client/server applications for Wi
 
 ## Issues
 
-- On Linux: the server sends a string and nothing is ever received by the client.
 - On Windows: both the client and server throw bad file descriptor errors when they try to read.

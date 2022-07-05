@@ -1,11 +1,12 @@
 #include "IPV4Socket.hh"
 
-#include "Request.hh"
 #include <errno.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include "Errcode.hh"
 #include "Ex.hh"
+#include "Request.hh"
 /*
   All encapsulation for different operating systems networking code is done here
 */
@@ -25,16 +26,16 @@
 
 WSADATA Socket::wsaData;
 
-#else // linux
+#else  // linux
 
-#include <netinet/in.h>
-#include <netdb.h>
 #include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
 #endif
 
+#include <memory.h>
 #include <signal.h>
 
-#include <memory.h>
 #include <fstream>
 
 using namespace std;
@@ -47,7 +48,7 @@ inline void testResult(int result, const char *file, int lineNum, Errcode err) {
 }
 
 #elif _WIN32
-inline void testResult(int result, const char *file, int lineNum, Errcode err) {
+inline void testResult(int result, const char* file, int lineNum, Errcode err) {
   if (result != 0) {
     throw Ex(file, lineNum, err);
   }
@@ -56,23 +57,19 @@ inline void testResult(int result, const char *file, int lineNum, Errcode err) {
 
 // Initializes Winsock
 void Socket::classInit() {
-  #ifdef _WIN32
+#ifdef _WIN32
   testResult(WSAStartup(MAKEWORD(2, 2), &wsaData), __FILE__, __LINE__,
              Errcode::SOCKET);
-  #endif
+#endif
   return;
 }
-IPV4Socket::~IPV4Socket()
-{
-	close(sckt);
-}
+IPV4Socket::~IPV4Socket() { close(sckt); }
 // Takes care of allocations made by Winsock
-void Socket::classCleanup() { 
-    #ifdef _WIN32
-    WSACleanup();
-    #endif
-  }
-
+void Socket::classCleanup() {
+#ifdef _WIN32
+  WSACleanup();
+#endif
+}
 
 #ifdef __linux__
 // Constructor for HTTP server
@@ -80,17 +77,17 @@ IPV4Socket::IPV4Socket(uint16_t port) : Socket(port) {
   int yes = 1;
   testResult(sckt = socket(AF_INET, SOCK_STREAM, 0), __FILE__, __LINE__,
              Errcode::SOCKET);
-  testResult(setsockopt(sckt, SOL_SOCKET, SO_REUSEADDR, (const char *) &yes, sizeof(yes)),
+  testResult(setsockopt(sckt, SOL_SOCKET, SO_REUSEADDR, (const char *)&yes,
+                        sizeof(yes)),
              __FILE__, __LINE__, Errcode::SETSOCKOPT);
   memset(sockaddress, 0, sizeof(sockaddress));
-  sockaddr_in* sockAddr = (sockaddr_in*)sockaddress;
+  sockaddr_in *sockAddr = (sockaddr_in *)sockaddress;
   sockAddr->sin_family = AF_INET;
   sockAddr->sin_addr.s_addr = INADDR_ANY;
   sockAddr->sin_port = htons(port);
   ::bind(sckt, (struct sockaddr *)sockAddr, sizeof(sockaddr_in));
   testResult(listen(sckt, 20), __FILE__, __LINE__, Errcode::LISTEN);
 }
-
 
 // Constructor for client
 IPV4Socket::IPV4Socket(const char *addr, uint16_t port) : Socket(addr, port) {
@@ -103,7 +100,7 @@ IPV4Socket::IPV4Socket(const char *addr, uint16_t port) : Socket(addr, port) {
     throw Ex(__FILE__, __LINE__, Errcode::SERVER_INVALID);
   }
 
-  sockaddr_in* sockAddr = (sockaddr_in*)sockaddress;
+  sockaddr_in *sockAddr = (sockaddr_in *)sockaddress;
   sockAddr->sin_family = AF_INET;
   //    bcopy((char *)server->h_addr, (char *)&sockaddress.sin_addr.s_addr,
   //    server->h_length);
@@ -124,8 +121,8 @@ void IPV4Socket::wait() {
     cout << "WAITING CONNECTION." << endl;
     int returnsckt =
         accept(sckt, (struct sockaddr *)&client_addrconfig, &client_length);
-    //		int senderSock = accept(listenSock, (struct sockaddr *) &sockaddress,
-    //&senderNameLen);
+    //		int senderSock = accept(listenSock, (struct sockaddr *)
+    //&sockaddress, &senderNameLen);
     if (returnsckt >= 0) {
       cout << "CONNECT SUCCESSFULLY"
            << "\n";
@@ -263,8 +260,8 @@ void IPV4Socket::wait() {
     if (returnsckt >= 0) {
       cout << "CONNECT SUCCESSFULLY"
            << "\n";
-      req->handle(returnsckt);
-      close(returnsckt);
+      req->handleServer(returnsckt);
+      closesocket(returnsckt);
       // csp18summer: if you are not familiar with socket, try below code
       //			read(senderSock,testin, sizeof(testin)-1);
       //			cout<<testin<<endl;
@@ -281,10 +278,14 @@ void IPV4Socket::wait() {
 
 // this code is outside of windows ifdef???
 void IPV4Socket::send(uint32_t reqn) {
-	write(sckt, &reqn, sizeof(uint32_t));
+  size_t bytesWritten;
+  if ((bytesWritten = ::send(sckt, (const char *)&reqn, sizeof(uint32_t), 0)) < 0) {
+    perror("Write Error: ");
+  }
+  cout << "Bytes Written: " << bytesWritten << endl;
 }
 
-void IPV4Socket::sendAndAwait(uint32_t reqn, Request& r) {
-	send(reqn);
-	r.handle(sckt);
+void IPV4Socket::sendAndAwait(uint32_t reqn, Request &r) {
+  send(reqn);
+  r.handle(sckt);
 }
