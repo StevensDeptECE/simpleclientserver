@@ -246,8 +246,8 @@ void IPV4Socket::wait() {
     if (returnsckt >= 0) {
       cout << "CONNECT SUCCESSFULLY"
            << "\n";
-      req->handle(returnsckt);
-      close(returnsckt);
+      req->handleServer(returnsckt);
+      closesocket(returnsckt);
       // csp18summer: if you are not familiar with socket, try below code
       //			read(senderSock,testin, sizeof(testin)-1);
       //			cout<<testin<<endl;
@@ -263,7 +263,13 @@ void IPV4Socket::wait() {
 #endif
 
 // this code is outside of windows ifdef???
-void IPV4Socket::send(uint32_t reqn) { write(sckt, &reqn, sizeof(uint32_t)); }
+void IPV4Socket::send(uint32_t reqn) {
+  size_t bytesWritten;
+  if ((bytesWritten = ::send(sckt, (const char *)&reqn, sizeof(uint32_t), 0)) < 0) {
+    perror("Write Error: ");
+  }
+  cout << "Bytes Written: " << bytesWritten << endl;
+}
 
 void IPV4Socket::sendAndAwait(uint32_t reqn, Request &r) {
   send(reqn);
