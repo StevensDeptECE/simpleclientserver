@@ -4,6 +4,8 @@
 #include <unistd.h>
 
 #include <iostream>
+
+#include "Socket.hh"
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 
@@ -20,16 +22,23 @@
 #endif
 using namespace std;
 
+
+
 /*
     receive request and send back socket to talk on?
  */
-void Request::handleServer(int returnsckt) {
+// BUG: This should absolutely be socket_t not int
+transportStatus Request::handleServer(int returnsckt) {
   cout << "Returning message on socket: " << returnsckt << '\n';
   char buf[256];
+  char err_buf[100];
 
   // first read incoming message from client
   int bytesRead = recv(returnsckt, buf, 256, 0);
-  if (bytesRead < 1) perror("Read error: ");
+  if (bytesRead < 0) {
+    fprintf(stderr,"recv() failed.");
+    return {bytesRead, false};
+  }
   cout << "bytes read: " << bytesRead << ' ';
   for (int i = 0; i < bytesRead; i++)  // dump out buffer as numbers
     cout << int(buf[i]) << ' ';
@@ -38,11 +47,13 @@ void Request::handleServer(int returnsckt) {
   // now write back to client
   const char answer[] = "testing";
 
-  size_t bytesWritten;
-  if((bytesWritten = ::send(returnsckt, answer, sizeof(answer), 0)) < 0){
+  int bytesWritten;
+  if ((bytesWritten = ::send(returnsckt, answer, sizeof(answer), 0)) < 0) {
     perror("Write Error: ");
   }
   cout << "Bytes Written: " << bytesWritten << endl;
+  this->shouldClose = true;
+  return {bytesWritten, true};
 }
 
 void Request::handle(int returnsckt) {

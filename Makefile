@@ -9,20 +9,20 @@ endif
 
 COMP := clang++
 DEBUG := -g
-OPT := -O1
+OPT := 
 CXXFLAGS := --std=c++20
 COMP += ${DEBUG} ${OPT} ${CXXFLAGS}
 
 all: bin/simpleserver bin/simpleclient
 
-bin/simpleserver: SimpleServer.cc IPV4Socket.cc Socket.cc Request.cc ErrNames.cc | bin
+bin/simpleserver: SimpleServer.cc IPV4SocketPlat.cc Socket.cc Request.cc ErrNames.cc | bin
 	${COMP} $^ -o $@ $(LIBS)
 
-bin/simpleclient: SimpleClient.cc IPV4Socket.cc Socket.cc Request.cc ErrNames.cc | bin
+bin/simpleclient: SimpleClient.cc IPV4SocketPlat.cc Socket.cc Request.cc ErrNames.cc | bin
 	${COMP} $^ -o $@ $(LIBS)
 
 bin:
 	mkdir bin/
 
 clean:
-	rm simpleclient simpleserver
+	rm bin/simpleclient bin/simpleserver

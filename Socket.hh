@@ -16,11 +16,11 @@ class Socket {
  protected:
   const char* address;
   uint16_t port;
+  struct addrinfo* result;
   #ifdef __linux__
        char sockaddress[16]; // placeholder big enough to hold sockaddr_in structure
   #elif _WIN32
       static WSADATA wsaData;
-      struct addrinfo* result;
   #endif
   Request* req;    // to be called when a request is INCOMING (req->handle() )
 
@@ -33,7 +33,6 @@ class Socket {
   Socket(uint16_t port, Request* req);
 
   Socket(uint16_t port);  // Constructor for server (addres not specified)
-  ~Socket();
 
   static void classCleanup();
   static void classInit();

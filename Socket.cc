@@ -14,7 +14,3 @@ Socket::Socket(uint16_t port)
       port(port),
       req(nullptr) {}
 
-Socket::~Socket() {
-	if (req != nullptr)
-		delete req;
-}
