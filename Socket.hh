@@ -5,11 +5,8 @@
          @author: Dov Kruger
  */
 
-#ifdef _WIN32
-#include <winsock2.h>
-#endif
 #include <cstdint>
-using namespace std;
+#include "SCSDefs.hh"
 
 class Request; // forward reference, all code is included in .cc
 class Socket {
@@ -17,11 +14,6 @@ class Socket {
   const char* address;
   uint16_t port;
   struct addrinfo* result;
-  #ifdef __linux__
-       char sockaddress[16]; // placeholder big enough to hold sockaddr_in structure
-  #elif _WIN32
-      static WSADATA wsaData;
-  #endif
   Request* req;    // to be called when a request is INCOMING (req->handle() )
 
  public:

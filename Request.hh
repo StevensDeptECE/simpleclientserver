@@ -1,5 +1,7 @@
 #pragma once
 
+#include "SCSDefs.hh"
+
 struct transportStatus {
   int bytesTransferred;
   bool isWriting;
@@ -11,7 +13,6 @@ class Request {
 
  public:
   Request() : shouldClose(false) {}
-  virtual transportStatus handleServer(int returnsckt);
-  virtual void handle(int returnsckt);
+  virtual transportStatus handle(socket_t returnsckt, bool shouldRespond);
   const bool getShouldClose() const { return shouldClose; }
 };

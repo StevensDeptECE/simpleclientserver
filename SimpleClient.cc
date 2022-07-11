@@ -1,4 +1,4 @@
-#include "IPV4SocketPlat.hh"
+#include "IPV4Socket.hh"
 #include "Errcode.hh"
 #include "Ex.hh"
 #include "Request.hh"
@@ -14,7 +14,6 @@ int main(int argc, char* argv[]) {
 		Request r;
 		IPV4Socket s(ip, port);
     s.sendAndAwait(req, r);
-    Sleep(5000);
         } catch (const Ex& e) {
 		cerr << e << '\n';
 	}

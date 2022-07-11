@@ -15,10 +15,10 @@ COMP += ${DEBUG} ${OPT} ${CXXFLAGS}
 
 all: bin/simpleserver bin/simpleclient
 
-bin/simpleserver: SimpleServer.cc IPV4SocketPlat.cc Socket.cc Request.cc ErrNames.cc | bin
+bin/simpleserver: SimpleServer.cc SocketIO.cc IPV4Socket.cc Socket.cc Request.cc ErrNames.cc  | bin
 	${COMP} $^ -o $@ $(LIBS)
 
-bin/simpleclient: SimpleClient.cc IPV4SocketPlat.cc Socket.cc Request.cc ErrNames.cc | bin
+bin/simpleclient: SimpleClient.cc SocketIO.cc IPV4Socket.cc Socket.cc Request.cc ErrNames.cc  | bin
 	${COMP} $^ -o $@ $(LIBS)
 
 bin:
