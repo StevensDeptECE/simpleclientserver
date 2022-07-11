@@ -12,7 +12,7 @@
 #pragma comment(lib, "Ws2_32.lib")  // Ignored by MinGW
 
 #define ISVALIDSOCKET(s) ((s) != INVALID_SOCKET)
-#define CLOSESOCKET(s) closesocket(s)
+#define CLOSESOCKET(s) (closesocket(s))
 #define GETSOCKETERRNO() (WSAGetLastError())
 #else  // linux
 #include <arpa/inet.h>
@@ -21,8 +21,9 @@
 #include <sys/socket.h>
 
 #define ISVALIDSOCKET(s) ((s) >= 0)
-#define CLOSESOCKET close(s)
+#define CLOSESOCKET(s) (close(s))
 #define GETSOCKETERRNO() (errno)
+#define INVALID_SOCKET -1
 #endif
 
 #ifndef socket_t

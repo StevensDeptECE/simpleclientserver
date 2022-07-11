@@ -11,6 +11,10 @@
 */
 #ifdef _WIN32
 static WSADATA wsaData;
+#elif __linux__
+#include <cstring>
+#include <cstdlib>
+#include <unistd.h>
 #endif
 
 using namespace std;
@@ -23,16 +27,16 @@ using namespace std;
 
 // Initializes Winsock
 void Socket::classInit() {
-  if constexpr (_WIN32) {
-    testResult(WSAStartup(MAKEWORD(2, 2), &wsaData), Errcode::SOCKET);
-  }
+#ifdef _WIN32
+  testResult(WSAStartup(MAKEWORD(2, 2), &wsaData), Errcode::SOCKET);
+#endif
 }
 
 // Takes care of allocations made by Winsock
 void Socket::classCleanup() {
-  if constexpr (_WIN32) {
-    WSACleanup();
-  }
+#ifdef _WIN32
+  WSACleanup();
+#endif
 }
 
 struct client_info {
@@ -53,7 +57,7 @@ IPV4Socket::IPV4Socket(uint16_t port, const char *host) : Socket(port) {
 
   char err_buf[256];
   char port_string[8];
-  itoa(port, port_string, 10);
+  sprintf(port_string, "%d", port);
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
@@ -73,18 +77,18 @@ IPV4Socket::IPV4Socket(uint16_t port, const char *host) : Socket(port) {
                 bind_addr->ai_protocol);
 
   if (!ISVALIDSOCKET(sckt)) {
-    if constexpr (_WIN32) {
+    #ifdef _WIN32
       freeaddrinfo(result);
-    }
+    #endif
     sprintf(err_buf, "socket() failed. %d", GETSOCKETERRNO());
     throw Ex2(Errcode::SOCKET, err_buf);
   }
 
   // Setup the TCP listening socket
   if (bind(sckt, result->ai_addr, (int)result->ai_addrlen)) {
-    if constexpr (_WIN32) {
+    #ifdef _WIN32
       freeaddrinfo(result);
-    }
+    #endif
     sprintf(err_buf, "bind() failed. %d", GETSOCKETERRNO());
     throw Ex2(Errcode::SOCKET_BIND, err_buf);
   }
@@ -106,7 +110,7 @@ IPV4Socket::IPV4Socket(const char *addr, uint16_t port) : Socket(addr, port) {
   struct addrinfo hints;
 
   char port_string[8];
-  itoa(port, port_string, 10);
+  sprintf(port_string, "%d", port);
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
