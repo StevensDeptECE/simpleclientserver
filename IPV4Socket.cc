@@ -4,6 +4,7 @@
 
 #include "Errcode.hh"
 #include "Ex.hh"
+#include "Log.hh"
 #include "Request.hh"
 #include "SocketIO.hh"
 /*
@@ -12,15 +13,16 @@
 #ifdef _WIN32
 static WSADATA wsaData;
 #elif __linux__
-#include <cstring>
-#include <cstdlib>
 #include <unistd.h>
+
+#include <cstdlib>
+#include <cstring>
 #endif
 
 using namespace std;
 
 #ifdef __linux__
-#define testResult(result, err) (result < 0 ? throw Ex(err) : result)
+#define testResult(result, err) (result < 0 ? throw Ex1(err) : result)
 #elif _WIN32
 #define testResult(result, err) (result != 0 ? throw Ex(err) : result)
 #endif
@@ -66,8 +68,10 @@ IPV4Socket::IPV4Socket(uint16_t port, const char *host) : Socket(port) {
   hints.ai_flags = AI_PASSIVE;
 
   // Resolve the local address and port to be used by the server
-  testResult(getaddrinfo(host, port_string, &hints, &bind_addr),
-             Errcode::SOCKET);
+  if (getaddrinfo(host, port_string, &hints, &bind_addr)){
+      freeaddrinfo(bind_addr);
+      throw Ex2(Errcode::SOCKET, "Address already in use");
+    }
   this->result = bind_addr;
 
   sckt = INVALID_SOCKET;
@@ -77,18 +81,14 @@ IPV4Socket::IPV4Socket(uint16_t port, const char *host) : Socket(port) {
                 bind_addr->ai_protocol);
 
   if (!ISVALIDSOCKET(sckt)) {
-    #ifdef _WIN32
-      freeaddrinfo(result);
-    #endif
+    freeaddrinfo(result);
     sprintf(err_buf, "socket() failed. %d", GETSOCKETERRNO());
     throw Ex2(Errcode::SOCKET, err_buf);
   }
 
   // Setup the TCP listening socket
   if (bind(sckt, result->ai_addr, (int)result->ai_addrlen)) {
-    #ifdef _WIN32
-      freeaddrinfo(result);
-    #endif
+    freeaddrinfo(result);
     sprintf(err_buf, "bind() failed. %d", GETSOCKETERRNO());
     throw Ex2(Errcode::SOCKET_BIND, err_buf);
   }
@@ -115,24 +115,39 @@ IPV4Socket::IPV4Socket(const char *addr, uint16_t port) : Socket(addr, port) {
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_protocol = IPPROTO_TCP;
-
+  logger.info("Hello World");
+  logger.info("Hello World");
+  logger.info("Hello World");
+  logger.info("Hello World");
   // TODO: Find out if port should stay as uint16_t or convert to const char *
   // Resolve the address and port to be used by the client
-  testResult(getaddrinfo(addr, port_string, &hints, &server_addr),
-             Errcode::SOCKET);
+  if (getaddrinfo(addr, port_string, &hints, &server_addr)) {
+    freeaddrinfo(server_addr);
+
+    logger.error("Unable to resolve address");
+    throw Ex1(Errcode::SOCKET);
+  }
 
   char address_buffer[100];
   char service_buffer[100];
 
-  getnameinfo(server_addr->ai_addr, server_addr->ai_addrlen, address_buffer,
-              sizeof(address_buffer), service_buffer, sizeof(service_buffer),
-              NI_NUMERICHOST);
+  if (getnameinfo(server_addr->ai_addr, server_addr->ai_addrlen, address_buffer,
+                  sizeof(address_buffer), service_buffer,
+                  sizeof(service_buffer), NI_NUMERICHOST)) {
+    freeaddrinfo(server_addr);
+    throw Ex2(Errcode::SOCKET, "getnameinfo() failed");
+  }
   sckt = socket(server_addr->ai_family, server_addr->ai_socktype,
                 server_addr->ai_protocol);
-  testResult(!ISVALIDSOCKET(sckt), Errcode::SOCKET);
+  if (!ISVALIDSOCKET(sckt)) {
+    freeaddrinfo(server_addr);
+    throw Ex2(Errcode::SOCKET, "socket() failed");
+  }
 
-  testResult(connect(sckt, server_addr->ai_addr, server_addr->ai_addrlen),
-             Errcode::SOCKET);
+  if (connect(sckt, server_addr->ai_addr, server_addr->ai_addrlen)) {
+    freeaddrinfo(server_addr);
+    throw Ex2(Errcode::SOCKET, "connect() failed");
+  }
 
   freeaddrinfo(server_addr);
 }

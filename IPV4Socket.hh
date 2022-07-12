@@ -25,13 +25,14 @@ class IPV4Socket : public Socket {
  public:
   IPV4Socket(const char* addr, uint16_t port);  // Client
   IPV4Socket(uint16_t port, const char* addr=NULL);  // Server
+  
   ~IPV4Socket();
   void wait();
   void send(const char* command);  // For HTTP
   void send(uint32_t reqn) const;
   void sendAndAwait(uint32_t reqn, Request& r) const;
 
-  std::vector<client_info> clients; // TODO: figure out if this is compiler magic or UB
+  std::vector<client_info> clients; 
 
  private:
   void dropClient(struct client_info* info);

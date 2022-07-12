@@ -6,6 +6,17 @@
 #include "Errcode.hh"
 #include "Ex.hh"
 
+namespace SocketIO {
+namespace {
+#ifdef __linux__
+const static int err_code = -1;
+#elif _WIN32
+const static int err_code = SOCKET_ERROR;
+#endif
+char err_buf[100] = {'\0'};
+}  // namespace
+}  // namespace SocketIO
+
 // TODO: Look into logging WSAGetLastError and strerror(errno)
 // Using the logging object in csp.hh?
 int SocketIO::send(socket_t sckt, const char *buf, int size, int flags) {

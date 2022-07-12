@@ -9,16 +9,22 @@ endif
 
 COMP := clang++
 DEBUG := -g
-OPT := 
+OPT := -O1
 CXXFLAGS := --std=c++20
-COMP += ${DEBUG} ${OPT} ${CXXFLAGS}
+ADDRSAN := -fsanitize=address -fno-omit-frame-pointer
+MEMSAN := -fsanitize=memory -fPIE -pie
+UBSAN := -fsanitize=undefined
+COMP += ${DEBUG} ${OPT} ${CXXFLAGS} ${ADDRSAN}
 
-all: bin/simpleserver bin/simpleclient
+all: bin/simpleserver bin/simpleclient bin/logging_demo
 
 bin/simpleserver: SimpleServer.cc SocketIO.cc IPV4Socket.cc Socket.cc Request.cc ErrNames.cc  | bin
 	${COMP} $^ -o $@ $(LIBS)
 
 bin/simpleclient: SimpleClient.cc SocketIO.cc IPV4Socket.cc Socket.cc Request.cc ErrNames.cc  | bin
+	${COMP} $^ -o $@ $(LIBS)
+
+bin/logging_demo: logging_demo.cc | bin
 	${COMP} $^ -o $@ $(LIBS)
 
 bin:

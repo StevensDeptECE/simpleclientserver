@@ -31,14 +31,6 @@ using socket_t = decltype(socket(0, 0, 0));
 #endif
 
 namespace SocketIO {
-namespace {
-#ifdef __linux__
-const static int err_code = -1;
-#elif _WIN32
-const static int err_code = SOCKET_ERROR;
-#endif
- char err_buf[100] = {'\0'};
-}  // namespace
 
  int send(socket_t sckt, const char *buf, int size, int flags);
  int recv(socket_t sckt, const char *buf, int size, int flags);
